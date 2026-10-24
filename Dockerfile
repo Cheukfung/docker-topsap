@@ -11,6 +11,7 @@ RUN test "$TARGETARCH" = amd64 \
     && apt-get install -y --no-install-recommends \
        ca-certificates curl dante-server iproute2 iptables libstdc++6 libuuid1 \
        net-tools procps python3 python3-cryptography python3-json5 sudo \
+    && update-alternatives --set iptables /usr/sbin/iptables-legacy \
     && rm -rf /var/lib/apt/lists/*
 
 # Current Linux amd64 download on https://app.topsec.com.cn/ (2026-10-24).

@@ -1,5 +1,7 @@
 #!/bin/bash
 set -Eeuo pipefail
+iptables --version | grep -F "(legacy)"
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 cd "$TOPSAP_DIR"
 ./sv_websrv > /tmp/sdk.log 2>&1 &
 sdk_pid=$!
