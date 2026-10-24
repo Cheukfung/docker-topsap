@@ -19,6 +19,11 @@ if ! python3 /home/work/topsap.py probe; then
     cat /tmp/sdk.log
     exit 1
 fi
+# No VPN credentials in CI: create an isolated TUN fixture for Dante's external
+# interface validation. This does not simulate a VPN connection.
+ip tuntap add dev tun0 mode tun
+ip address add 192.0.2.1/32 dev tun0
+ip link set dev tun0 up
 if ! /usr/sbin/danted -V -f /etc/danted.conf; then
     exit 1
 fi
