@@ -1,4 +1,5 @@
-# Log file
 *.log
 .DS_Store
 .idea
+.env
+__pycache__/

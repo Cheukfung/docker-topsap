@@ -1,90 +1,64 @@
-# 用法
+# Dokploy 部署（amd64 测试版）
 
-**启动参数里的 `--device /dev/net/tun --cap-add NET_ADMIN` 一定要加。 因为 TopSAP 要使用它来创建虚拟网络设备。**
+此 fork 使用天融信官网当前 Linux 主下载按钮提供的 **3.6.3.31.2.22375 amd64** 安装包（核对日期：2026-10-24）。支持用户名、密码认证。短信、扫码、图形验证码和证书登录尚未适配。当前版本不支持 arm64。
 
-## 使用方法
+新版包已移除 `topvpn`，通过原生 `sv_websrv` 的 Unix socket 调用官方 SDK。登录字段、密码 RSA 编码和状态查询依据安装包自带的 `sv_init.js`；不运行 Electron 图形界面。
 
-1. 安装 Docker。
+## Dokploy
 
-2. 在终端输入：
-   `docker run -d -it --device /dev/net/tun --cap-add NET_ADMIN -p 127.0.0.1:1088:1080 --name some_name -e USER_NAME=you_name -e PASSWORD=you_password -e SERVER_ADDRESS=you_address libra146/docker-topsap`
+1. 新建 **Compose** 服务，选择 **Docker Compose** 类型。
+2. Git 来源选择 `Cheukfung/docker-topsap`，分支 `main`，Compose Path 填 `compose.yaml`。
+3. 在 Environment 填入以下配置，然后部署：
 
-3. 将以上命令的环境变量替换成对应的用户名密码还有服务器地址。
-
-4. 浏览器（或其他支持的应用）可配置socks5代理，地址 127.0.0.1, 端口 1080。
-
-5. 注意⚠️：docker 参数中的 -it 命令一定要加，因为 expect 命令需要在终端中才能正常执行，需要 docker 分配一个伪终端给 expect 用才能正常登录，否则会卡在输入密码的地方。
-
-## 环境变量
-
-- `USER_NAME`：用户名，TopSAP登录用户名
-
-- `PASSWORD`：密码，ToPSAP账号登录密码
-
-- `SERVER_ADDRESS`：服务器地址
-
-## 如果遇到特殊字符，则可以使用文件传递环境变量的内容
-
-1. 安装 Docker。
-
-2. 将服务器地址，账号，密码填写到 .env 文件中对应的位置中。
-
-3. 在终端输入：
-   `docker run -d -it --device /dev/net/tun --cap-add NET_ADMIN -p 127.0.0.1:1088:1080 --name some_name --env-file .env libra146/docker-topsap`
-
-4. 浏览器（或其他支持的应用）可配置socks5代理，地址 127.0.0.1, 端口 1080。
-
-5. 注意⚠️：docker 参数中的 -it 命令一定要加，因为 expect 命令需要在终端中才能正常执行，需要 docker 分配一个伪终端给 expect
-   用才能正常登录，否则会卡在输入密码的地方。
-
-
-## 服务
-
-### Socks5
-
-服务启动后，会自动开启 Socks5，默认监听容器内的 1080 端口，可以使用 -p 参数将容器外部端口转发到 1080 端口，然后就可以通过容器内的 TopSAP上网啦。
-
-## 注意❗️
-
-TopSAP 在 docker 内运行时会获取本机的 `/sys/class/dmi/id/product_uuid` 这个文件内的信息作为本机唯一标识，docker 内的 product_uuid 标识默认取的是本机的 `/sys/class/dmi/id/product_uuid` ，如果在多个设备上登录可能会导致账号被禁用（取决于服务端设置），如果你所在的公司无 id 限制，可忽略。
-
-```bash
-root@956a2f1417dd:/home/work# cd /opt/TopSAP/
-root@956a2f1417dd:/opt/TopSAP# ./sv_websrv 
-Failed to create listener: cannot parse address
-Starting SSL server on port 127.0.0.1:7443, cert from server.pem, key from server.key
-mkdir: cannot create directory ‘/opt/sslvpn’: File exists
-VPNSDK:The SDK Version is 3.4.221229.0.2
-
-start....---------------------what
-open hard disk device failed.overlay,-1
-get the diskid error.
-get the cpu id error.
-diskId:85bc4d56-4295-422a-5510-9ea5b68cc731lUoYuAncHeNtIaNkAijWn
-16_MD5:W�:�E��`G7
-MD5:5795ee85a83ae345ee180305f8604737
-featureCode:5795ee85a83ae345ee180305f8604737
+```dotenv
+SERVER_ADDRESS=vpn.example.com:443
+USER_NAME=你的用户名
+PASSWORD=你的密码
+TUN_MTU=1300
+SOCKS_BIND_IP=127.0.0.1
+SOCKS_PORT=1088
 ```
 
-目前暂不清楚 Mac 版和 Linux 版获取了什么信息当作了本机唯一标识。
+`SERVER_ADDRESS` 填 `主机名:端口` 或 `IP:端口`，不带 `https://` 和路径。账号密码不要提交到 Git。包含 `$`、`#` 等字符时，按 dotenv 格式用单引号包住整个值。
 
-可以确定的是，docker 中因为其他信息获取失败了，所以会获取  `/sys/class/dmi/id/product_uuid` 这里的信息当作唯一标识，如果需要在多个地方运行 docker 容器，需要使用下面的方法来设置标识的值码，使其在多个地方都相同。
+宿主机必须有 `/dev/net/tun`。Compose 已声明 `NET_ADMIN` 和设备映射，无须 privileged。使用 Docker Compose 模式；Stack 模式不适用于这里的设备映射和源码构建。不要为 SOCKS5 服务添加 HTTP 域名代理。
+
+默认 SOCKS5 监听宿主机 `127.0.0.1:1088`，无认证。如需从自己电脑访问远端部署，可先建立 SSH 隧道：
 
 ```bash
-user:~$ sudo cat /sys/class/dmi/id/product_uuid 
-85bc4d56-4295-422a-5510-9ea5b68cc731
-user:~$ docker run --rm -it ubuntu:22.10 bash
-root@3eedbe1d0994:/# cat /sys/class/dmi/id/product_uuid 
-85bc4d56-4295-422a-5510-9ea5b68cc731
-root@3eedbe1d0994:/# 
-exit
-user:~$ echo 111 > uuid
-user:~$ cat uuid
-111
-user:~$ docker run --rm -it -v ./uuid:/sys/class/dmi/id/product_uuid ubuntu:22.10 bash
-root@f0a197866f1c:/# cat /sys/class/dmi/id/product_uuid 
-111
-root@f0a197866f1c:/# 
+ssh -N -L 1088:127.0.0.1:1088 你的SSH用户@Dokploy服务器
 ```
 
-在 docker 运行时，使用 `-v` 命令将本地的 uuid 映射到容器中即可修改容器内的 product_uuid。
+然后测试：
+
+```bash
+curl -v --noproxy '' --proxy socks5h://127.0.0.1:1088 \
+  --connect-timeout 10 --max-time 30 '完整HTTPS地址'
+```
+
+需要绑定服务器内网地址时，修改 `SOCKS_BIND_IP`。该代理没有认证，只绑定可信网络可访问的地址。
+
+## 超长 URL 对照测试
+
+先保持 `TUN_MTU=1300` 测试同一 URL；若仍超时，再改为 `1200` 并重新部署。这是 MTU 对照实验，客户端升级本身不保证解决原问题。
+
+登录失败会退出，保留错误码，不会切回旧客户端或反复尝试密码。测试版 `restart: "no"`，避免错误凭据重复登录；修正配置后手动重新部署。
+
+Dokploy 日志显示登录阶段和 SDK 错误码。需要排查原生启动错误时，在容器终端查看 `/home/work/sv_websrv.log`。官方 SDK 的日志可能包含账号信息，分享前脱敏。
+
+## 本地构建
+
+```bash
+cp .env.example .env
+# 编辑 .env
+docker compose -f compose.yaml up -d --build
+docker compose -f compose.yaml logs -f
+```
+
+构建会从官方 HTTPS 地址直连下载固定版本并校验 SHA-256；下载失败或校验不符会直接停止。基础镜像为 Debian Bookworm。包通过 `dpkg-deb --extract` 解压，不执行会修改用户桌面、注册系统服务和启动 cron 的桌面安装脚本。
+
+## 验证边界
+
+GitHub Actions 验证 amd64 镜像构建、Compose 配置、原生 SDK 的实际启动与本地接口响应、Dante 配置，以及 Unix socket 半关闭和分段响应处理。CI 不持有你的 VPN 凭据，不验证登录、网关兼容性或长 URL 连通性；这些需在 Dokploy 部署后测试。
+
+官方来源：[下载首页](https://app.topsec.com.cn/) · [固定版本安装包](https://app.topsec.com.cn/linux/general/x86_64/deb/TopSAP-3.6.3.31.2.22375_amd64.deb)。

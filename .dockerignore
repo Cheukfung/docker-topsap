@@ -1,0 +1,7 @@
+.git
+.github
+.env
+*.deb
+doc
+tests
+__pycache__

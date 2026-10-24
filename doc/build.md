@@ -1,25 +1,13 @@
-# 构建说明
+# 构建与验证
 
-## 从 Dockerfile 构建
-
-### ❗️注意：本仓库用到了 git lfs，使用前请先安装：
-
-> 对于 Ubuntu 和 Debian，使用以下命令安装，其他系统请自行安装
+当前 fork 支持 linux/amd64，官方 TopSAP 版本为 3.6.3.31.2.22375。
 
 ```bash
-sudo apt install git-lfs
+docker build --platform linux/amd64 --build-arg TARGETARCH=amd64 -t topsap:test .
+docker run --rm --cap-add NET_ADMIN --device /dev/net/tun \
+  -v "$PWD/tests:/tests:ro" topsap:test bash /tests/smoke.sh
 ```
 
-安装好 git-lfs 后，使用以下命令构建镜像
+无需 Git LFS 或仓库内置的旧安装包。Dockerfile 从天融信官网固定 URL 下载并校验 SHA-256。
 
-
-```bash
-git clone --depth=1 https://github.com/libra146/docker-topsap
-cd docker-topsap
-git lfs pull
-docker build -t libra146/docker-topsap:0.1.0 -f Dockerfile .
-```
-
-本项目内置了 3.5.2.36.2 版本的 arm 版本和 x86 版本，如果您需要的版本不是这个，请 clone 项目后更改 dockerfile 文件重新构建。
-
-因官方版本更新较快，并且版本比较多，无法匹配所有版本，请见谅！
+部署步骤与验证范围见 [usage.md](usage.md)。

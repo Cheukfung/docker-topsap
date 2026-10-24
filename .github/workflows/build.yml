@@ -1,0 +1,31 @@
+name: Build and verify
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  amd64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install test dependency
+        run: sudo apt-get update && sudo apt-get install -y python3-cryptography
+      - name: Validate scripts and control protocol
+        run: |
+          bash -n start.sh tests/smoke.sh
+          /usr/bin/python3 -m unittest discover -s tests -v
+      - name: Build current official client
+        run: docker build --platform linux/amd64 --build-arg TARGETARCH=amd64 -t topsap:test .
+      - name: Check Compose configuration
+        env:
+          SERVER_ADDRESS: vpn.example.com:443
+          USER_NAME: test
+          PASSWORD: test
+        run: docker compose -f compose.yaml config --quiet
+      - name: Run actual native SDK
+        run: |
+          docker run --rm --cap-add NET_ADMIN --device /dev/net/tun \
+            -v "$PWD/tests:/tests:ro" topsap:test bash /tests/smoke.sh

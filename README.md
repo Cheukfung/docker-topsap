@@ -1,21 +1,17 @@
-# docker-topsap
+# docker-topsap — 新版客户端测试分支
 
-[![Docker-publish](https://github.com/libra146/docker-topsap/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/libra146/docker-topsap/actions/workflows/docker-publish.yml)
-![GitHub issues](https://img.shields.io/github/issues/libra146/docker-topsap)
-![GitHub repo size](https://img.shields.io/github/repo-size/libra146/docker-topsap)
-![Docker Pulls](https://img.shields.io/docker/pulls/libra146/docker-topsap)
-[![GitHub](https://img.shields.io/github/license/libra146/docker-topsap)](https://github.com/libra146/docker-topsap/blob/main/LICENSE)
+[![Build and verify](https://github.com/Cheukfung/docker-topsap/actions/workflows/build.yml/badge.svg)](https://github.com/Cheukfung/docker-topsap/actions/workflows/build.yml)
 
-使天融信开发的 TopSAP 运行在 docker 或 podman 中，并提供 socks5 代理服务
+基于 [libra146/docker-topsap](https://github.com/libra146/docker-topsap) 的 fork，更新为天融信官网当前 Linux 主下载版本 **3.6.3.31.2.22375 amd64**（2026-10-24 核对），提供 SOCKS5 代理。
 
-**本项目基于 天融信 官方“Linux”版的 deb 包制作。这些 deb 包的版权归 天融信 官方所有，请不要滥用本项目。本项目不是天融信官方项目。
-**
+- 面向 **Dokploy / Docker Compose、x86_64/amd64、用户名密码登录**。
+- 新版通过原生后台 Unix socket 登录，不依赖已移除的 `topvpn` 命令，也不需要桌面或交互终端。
+- `TUN_MTU` 可配置，默认保持 1300；可设为 1200 对照排查长 HTTPS URL 超时。
+- CI 构建镜像并启动真实原生 SDK；VPN 登录与长 URL 访问需要你的环境验证。
 
-望批评、指正。欢迎提交 issue、PR，包括但不仅限于 bug、各种疑问、代码和文档的改进。
+**部署说明：[doc/usage.md](doc/usage.md)** · [构建说明](doc/build.md) · [Compose 配置](compose.yaml)
 
-详细用法见于 [doc/usage.md](https://github.com/libra146/docker-topsap/blob/main/doc/usage.md)
-，常见问题见于 [doc/faq.md](https://github.com/libra146/docker-topsap/blob/main/doc/faq.md)
-，自行构建可参照构建说明 [doc/build.md](https://github.com/libra146/docker-topsap/blob/main/doc/build.md)。
+本项目使用天融信官方 Linux 安装包，客户端版权归天融信所有；本项目不是天融信官方项目。原项目的声明保留如下。
 
 ## 特别声明
 

@@ -1,52 +1,47 @@
 #!/bin/bash
+set -Eeuo pipefail
+umask 077
 
-# 判断tun0是否存在的
-if [ -e /dev/net/tun ]; then
-  :
-else
-  echo "/dev/net/tun doesn't exist. Please create it first." >&2
-  exit 1
-fi
+: "${SERVER_ADDRESS:?Set SERVER_ADDRESS to the VPN gateway host:port}"
+: "${USER_NAME:?Set USER_NAME}"
+: "${PASSWORD:?Set PASSWORD}"
+: "${TOPSAP_DIR:?Set TOPSAP_DIR}"
+: "${TUN_MTU:?Set TUN_MTU}"
+[[ -c /dev/net/tun ]] || { echo 'Missing /dev/net/tun; configure devices in Compose' >&2; exit 1; }
 
-# 定义一个处理函数，用于在接收到 INT 信号时退出脚本
-function cleanup {
-  echo "Exiting script..."
-  exit 0
+pids=()
+cleanup() {
+    trap - EXIT
+    for pid in "${pids[@]}"; do
+        if kill -0 "$pid" 2>/dev/null; then
+            kill "$pid"
+        fi
+    done
+    wait
 }
+trap cleanup EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
 
-# 捕获 INT 信号，并调用 cleanup 函数
-trap cleanup INT
-
-sed -i "s/{{server_address}}/$SERVER_ADDRESS/g" expect.exp
-sed -i "s/{{user_name}}/$USER_NAME/g" expect.exp
-sed -i "s/{{password}}/$PASSWORD/g" expect.exp
-
-cd /opt/TopSAP && ./sv_websrv >/home/work/sv_websrv.log 2>&1 &
-
-sleep 1
-
-expect -f expect.exp
-
-for i in {1..3}; do
-  if [ -e "/sys/class/net/tun0" ]; then
-    # 如果设备存在，跳出循环
-    danted -f /etc/danted.conf &
-    break
-  else
-    # 如果设备不存在，等待三秒后进行下一次判断
-    sleep 3
-  fi
+cd "$TOPSAP_DIR"
+./sv_websrv > /home/work/sv_websrv.log 2>&1 &
+vpn_pid=$!
+pids+=("$vpn_pid")
+for ((i=0; i<30; i++)); do
+    kill -0 "$vpn_pid"
+    if [[ -S /tmp/TopSAP_ELE/topsap.sock ]]; then
+        break
+    fi
+    sleep 1
 done
+[[ -S /tmp/TopSAP_ELE/topsap.sock ]] || { echo 'TopSAP control socket did not start; inspect /home/work/sv_websrv.log' >&2; exit 1; }
 
-# 循环结束后判断设备是否存在
-if [ ! -e "/sys/class/net/tun0" ]; then
-  echo "Device tun0 not found."
-  exit 1
-fi
-
-# 更改MTU（与 topsap 的默认值保持一致）
-ip link set dev tun0 mtu 1300
-
-# 添加NAT转发，使其他请求可以走正常出口，不全部走代理，例如公网请求
+python3 /home/work/topsap.py
+ip link set dev tun0 mtu "$TUN_MTU"
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-wait
+danted -f /etc/danted.conf &
+pids+=("$!")
+echo "SOCKS5 listening on container port 1080; tun0 MTU=$TUN_MTU"
+wait -n "${pids[@]}"
+echo 'A required service exited; stopping the container' >&2
+exit 1

@@ -1,0 +1,18 @@
+services:
+  topsap:
+    platform: linux/amd64
+    build:
+      context: .
+    restart: "no"
+    init: true
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      SERVER_ADDRESS: ${SERVER_ADDRESS:?Set SERVER_ADDRESS}
+      USER_NAME: ${USER_NAME:?Set USER_NAME}
+      PASSWORD: ${PASSWORD:?Set PASSWORD}
+      TUN_MTU: ${TUN_MTU:-1300}
+    ports:
+      - "${SOCKS_BIND_IP:-127.0.0.1}:${SOCKS_PORT:-1088}:1080"
