@@ -15,4 +15,4 @@ services:
       PASSWORD: ${PASSWORD:?Set PASSWORD}
       TUN_MTU: ${TUN_MTU:-1300}
     ports:
-      - "${SOCKS_BIND_IP:-127.0.0.1}:${SOCKS_PORT:-1088}:1080"
+      - "${PROXY_BIND_IP:-192.168.0.233}:${SOCKS_PORT:-1088}:1080"

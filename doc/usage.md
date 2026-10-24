@@ -15,7 +15,7 @@ SERVER_ADDRESS=vpn.example.com:443
 USER_NAME=你的用户名
 PASSWORD=你的密码
 TUN_MTU=1300
-SOCKS_BIND_IP=127.0.0.1
+PROXY_BIND_IP=192.168.0.233
 SOCKS_PORT=1088
 ```
 
@@ -23,22 +23,16 @@ SOCKS_PORT=1088
 
 宿主机必须有 `/dev/net/tun`。Compose 已声明 `NET_ADMIN` 和设备映射，无须 privileged。使用 Docker Compose 模式；Stack 模式不适用于这里的设备映射和源码构建。不要为 混合代理服务添加 HTTP 域名代理。
 
-默认 HTTP/SOCKS5 混合代理监听宿主机 `127.0.0.1:1088`，无认证。如需从自己电脑访问远端部署，可先建立 SSH 隧道：
+默认 HTTP/SOCKS5 混合代理绑定 NAS 的内网地址 `192.168.0.233:1088`，局域网设备直接连接这个地址，两种协议共用一个端口，无须 SSH 隧道。`PROXY_BIND_IP` 可指定 NAS 的其他内网地址，`SOCKS_PORT` 可修改端口。旧的 `SOCKS_BIND_IP` 变量不再生效。
 
 ```bash
-ssh -N -L 1088:127.0.0.1:1088 你的SSH用户@Dokploy服务器
-```
-
-然后测试：
-
-```bash
-curl -v --noproxy '' --proxy socks5h://127.0.0.1:1088 \
+curl -v --noproxy '' --proxy socks5h://192.168.0.233:1088 \
+  --connect-timeout 10 --max-time 30 '完整HTTPS地址'
+curl -v --noproxy '' --proxy http://192.168.0.233:1088 \
   --connect-timeout 10 --max-time 30 '完整HTTPS地址'
 ```
 
-HTTP 代理使用同一个端口：`curl --noproxy '' --proxy http://127.0.0.1:1088 'https://目标地址'`，支持 HTTPS CONNECT。GOST 自动识别协议，经本地 Dante 转发；Dante 的出口绑定 `tun0`。
-
-需要绑定服务器内网地址时，修改 `SOCKS_BIND_IP`。该代理没有认证，只绑定可信网络可访问的地址。
+HTTP 代理支持 HTTPS CONNECT。GOST 自动识别协议，经本地 Dante 转发；Dante 的出口绑定 `tun0`。该代理没有认证，端口仅供可信网络访问。
 
 ## 超长 URL 对照测试
 
