@@ -10,7 +10,7 @@ RUN test "$TARGETARCH" = amd64 \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
        ca-certificates curl dante-server iproute2 iptables libstdc++6 libuuid1 \
-       net-tools procps python3 python3-cryptography sudo \
+       net-tools procps python3 python3-cryptography python3-json5 sudo \
     && rm -rf /var/lib/apt/lists/*
 
 # Current Linux amd64 download on https://app.topsec.com.cn/ (2026-10-24).
@@ -25,6 +25,14 @@ RUN curl --fail --location --show-error --connect-timeout 30 --max-time 300 \
     && mkdir -p /home/work /opt/sslvpn/config \
     && touch /opt/sslvpn/config/vpnclient-sysconfig /opt/sslvpn/config/resinfo-config \
              /opt/sslvpn/config/spa_dateconfig /opt/sslvpn/config/spaconfig /opt/sslvpn/config/.sysconfig
+
+# Fixed GOST release supplies the HTTP/SOCKS auto-detecting entry point.
+RUN curl --fail --location --show-error --connect-timeout 30 --max-time 300 \
+      https://github.com/go-gost/gost/releases/download/v3.3.1/gost_3.3.1_linux_amd64.tar.gz \
+      --output /tmp/gost.tar.gz \
+    && echo 'e0e3a2c9116e2f025e962bba340749f80696bda318613d45e5ae96dd0bcae37c  /tmp/gost.tar.gz' | sha256sum --check - \
+    && tar -xzf /tmp/gost.tar.gz -C /usr/local/bin gost \
+    && rm /tmp/gost.tar.gz
 
 WORKDIR /home/work
 COPY start.sh topsap.py ./

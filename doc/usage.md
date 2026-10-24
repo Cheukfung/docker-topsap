@@ -21,9 +21,9 @@ SOCKS_PORT=1088
 
 `SERVER_ADDRESS` 填 `主机名:端口` 或 `IP:端口`，不带 `https://` 和路径。账号密码不要提交到 Git。包含 `$`、`#` 等字符时，按 dotenv 格式用单引号包住整个值。
 
-宿主机必须有 `/dev/net/tun`。Compose 已声明 `NET_ADMIN` 和设备映射，无须 privileged。使用 Docker Compose 模式；Stack 模式不适用于这里的设备映射和源码构建。不要为 SOCKS5 服务添加 HTTP 域名代理。
+宿主机必须有 `/dev/net/tun`。Compose 已声明 `NET_ADMIN` 和设备映射，无须 privileged。使用 Docker Compose 模式；Stack 模式不适用于这里的设备映射和源码构建。不要为 混合代理服务添加 HTTP 域名代理。
 
-默认 SOCKS5 监听宿主机 `127.0.0.1:1088`，无认证。如需从自己电脑访问远端部署，可先建立 SSH 隧道：
+默认 HTTP/SOCKS5 混合代理监听宿主机 `127.0.0.1:1088`，无认证。如需从自己电脑访问远端部署，可先建立 SSH 隧道：
 
 ```bash
 ssh -N -L 1088:127.0.0.1:1088 你的SSH用户@Dokploy服务器
@@ -35,6 +35,8 @@ ssh -N -L 1088:127.0.0.1:1088 你的SSH用户@Dokploy服务器
 curl -v --noproxy '' --proxy socks5h://127.0.0.1:1088 \
   --connect-timeout 10 --max-time 30 '完整HTTPS地址'
 ```
+
+HTTP 代理使用同一个端口：`curl --noproxy '' --proxy http://127.0.0.1:1088 'https://目标地址'`，支持 HTTPS CONNECT。GOST 自动识别协议，经本地 Dante 转发；Dante 的出口绑定 `tun0`。
 
 需要绑定服务器内网地址时，修改 `SOCKS_BIND_IP`。该代理没有认证，只绑定可信网络可访问的地址。
 
@@ -59,7 +61,7 @@ docker compose -f docker-compose.yml logs -f
 
 ## 验证边界
 
-GitHub Actions 验证 amd64 镜像构建、Compose 配置、原生 SDK 的实际启动与本地接口响应、Dante 配置，以及 Unix socket 半关闭和分段响应处理。CI 不持有你的 VPN 凭据，不验证登录、网关兼容性或长 URL 连通性；这些需在 Dokploy 部署后测试。
+GitHub Actions 验证 amd64 镜像构建、Compose 配置、原生 SDK 的实际启动与本地接口响应、Dante 配置和 HTTP/SOCKS5 同端口转发，以及 Unix socket 半关闭和分段响应处理。CI 不持有你的 VPN 凭据，不验证登录、网关兼容性或长 URL 连通性；这些需在 Dokploy 部署后测试。
 
 安装包镜像：[fork Release](https://github.com/Cheukfung/docker-topsap/releases/tag/topsap-3.6.3.31.2.22375)。GitHub runner 无法连接官网下载站，构建统一使用此镜像，不自动切换下载来源。
 

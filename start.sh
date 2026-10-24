@@ -41,7 +41,9 @@ ip link set dev tun0 mtu "$TUN_MTU"
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 danted -f /etc/danted.conf &
 pids+=("$!")
-echo "SOCKS5 listening on container port 1080; tun0 MTU=$TUN_MTU"
+gost -L auto://:1080 -F socks5://127.0.0.1:1081 &
+pids+=("$!")
+echo "HTTP/SOCKS5 mixed proxy listening on container port 1080; tun0 MTU=$TUN_MTU"
 wait -n "${pids[@]}"
 echo 'A required service exited; stopping the container' >&2
 exit 1

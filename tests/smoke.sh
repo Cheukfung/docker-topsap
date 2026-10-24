@@ -27,4 +27,13 @@ ip link set dev tun0 up
 if ! /usr/sbin/danted -V -f /etc/danted.conf; then
     exit 1
 fi
-echo 'Native SDK and SOCKS5 configuration smoke test passed'
+# Exercise both supported proxy protocols through GOST -> Dante -> local origin.
+# Only this test's Dante uses loopback; production still binds its egress to tun0.
+sed 's/external: tun0/external: lo/' /etc/danted.conf > /tmp/danted-test.conf
+danted -f /tmp/danted-test.conf > /tmp/dante.log 2>&1 &
+dante_pid=$!
+gost -L auto://127.0.0.1:1080 -F socks5://127.0.0.1:1081 > /tmp/gost.log 2>&1 &
+gost_pid=$!
+python3 /tests/mixed_proxy.py
+kill "$gost_pid" "$dante_pid"
+echo 'Native SDK, JavaScript-object response parser, and HTTP/SOCKS5 mixed proxy tests passed'

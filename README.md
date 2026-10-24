@@ -2,7 +2,7 @@
 
 [![Build and verify](https://github.com/Cheukfung/docker-topsap/actions/workflows/build.yml/badge.svg)](https://github.com/Cheukfung/docker-topsap/actions/workflows/build.yml)
 
-基于 [libra146/docker-topsap](https://github.com/libra146/docker-topsap) 的 fork，更新为天融信官网当前 Linux 主下载版本 **3.6.3.31.2.22375 amd64**（2026-10-24 核对），提供 SOCKS5 代理。
+基于 [libra146/docker-topsap](https://github.com/libra146/docker-topsap) 的 fork，更新为天融信官网当前 Linux 主下载版本 **3.6.3.31.2.22375 amd64**（2026-10-24 核对），提供 HTTP/SOCKS5 混合代理。
 
 - 面向 **Dokploy / Docker Compose、x86_64/amd64、用户名密码登录**。
 - 新版通过原生后台 Unix socket 登录，不依赖已移除的 `topvpn` 命令，也不需要桌面或交互终端。

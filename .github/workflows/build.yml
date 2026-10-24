@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install test dependency
-        run: sudo apt-get update && sudo apt-get install -y python3-cryptography
+        run: sudo apt-get update && sudo apt-get install -y python3-cryptography python3-json5
       - name: Validate scripts and control protocol
         run: |
           bash -n start.sh tests/smoke.sh

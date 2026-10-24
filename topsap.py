@@ -6,6 +6,7 @@ sv_websrv reads a JSON request through EOF and returns one callback, then closes
 
 import base64
 import json
+import json5
 import os
 from pathlib import Path
 import socket
@@ -35,7 +36,9 @@ def request(payload, socket_path=SOCKET_PATH):
         chunks = []
         while chunk := client.recv(65536):
             chunks.append(chunk)
-    return json.loads(b"".join(chunks))
+    # The SDK emits JavaScript object literals (unquoted keys), as handled by
+    # safeParseData in the official UI. Parse that format directly, without eval.
+    return json5.loads(b"".join(chunks).decode("utf-8"))
 
 
 def checked_request(payload):

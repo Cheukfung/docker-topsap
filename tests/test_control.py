@@ -28,15 +28,15 @@ class ControlTransportTest(unittest.TestCase):
                         while chunk := connection.recv(64):
                             chunks.append(chunk)
                         captured.append(json.loads(b"".join(chunks)))
-                        connection.sendall(b'{"err_code":')
-                        connection.sendall(b'0,"value":"ok"}')
+                        connection.sendall(b'{err_code:')
+                        connection.sendall(b'0,value:"{literal: unchanged}"}')
 
                 worker = threading.Thread(target=receive)
                 worker.start()
                 result = topsap.request({"method": "test", "user": "a+b=", "label": "中文"}, path)
                 worker.join(timeout=5)
                 self.assertFalse(worker.is_alive())
-                self.assertEqual(result, {"err_code": 0, "value": "ok"})
+                self.assertEqual(result, {"err_code": 0, "value": "{literal: unchanged}"})
                 self.assertEqual(captured, [{"method": "test", "user": "a%2Bb=", "label": "中文"}])
 
 
