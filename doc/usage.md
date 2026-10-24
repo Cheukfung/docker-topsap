@@ -55,10 +55,12 @@ docker compose -f compose.yaml up -d --build
 docker compose -f compose.yaml logs -f
 ```
 
-构建会从官方 HTTPS 地址直连下载固定版本并校验 SHA-256；下载失败或校验不符会直接停止。基础镜像为 Debian Bookworm。包通过 `dpkg-deb --extract` 解压，不执行会修改用户桌面、注册系统服务和启动 cron 的桌面安装脚本。
+构建会从本 fork 的 GitHub Release 下载未经修改的官方固定版本安装包并校验 SHA-256；下载失败或校验不符会直接停止。基础镜像为 Debian Bookworm。包通过 `dpkg-deb --extract` 解压，不执行会修改用户桌面、注册系统服务和启动 cron 的桌面安装脚本。
 
 ## 验证边界
 
 GitHub Actions 验证 amd64 镜像构建、Compose 配置、原生 SDK 的实际启动与本地接口响应、Dante 配置，以及 Unix socket 半关闭和分段响应处理。CI 不持有你的 VPN 凭据，不验证登录、网关兼容性或长 URL 连通性；这些需在 Dokploy 部署后测试。
+
+安装包镜像：[fork Release](https://github.com/Cheukfung/docker-topsap/releases/tag/topsap-3.6.3.31.2.22375)。GitHub runner 无法连接官网下载站，构建统一使用此镜像，不自动切换下载来源。
 
 官方来源：[下载首页](https://app.topsec.com.cn/) · [固定版本安装包](https://app.topsec.com.cn/linux/general/x86_64/deb/TopSAP-3.6.3.31.2.22375_amd64.deb)。

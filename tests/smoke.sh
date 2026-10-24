@@ -3,7 +3,13 @@ set -Eeuo pipefail
 cd "$TOPSAP_DIR"
 ./sv_websrv > /tmp/sdk.log 2>&1 &
 sdk_pid=$!
-trap 'kill "$sdk_pid"; wait "$sdk_pid"' EXIT
+cleanup() {
+    if kill -0 "$sdk_pid" 2>/dev/null; then
+        kill "$sdk_pid"
+    fi
+    wait
+}
+trap cleanup EXIT
 for ((i=0; i<30; i++)); do
     kill -0 "$sdk_pid"
     if [[ -S /tmp/TopSAP_ELE/topsap.sock ]]; then break; fi

@@ -14,9 +14,10 @@ RUN test "$TARGETARCH" = amd64 \
     && rm -rf /var/lib/apt/lists/*
 
 # Current Linux amd64 download on https://app.topsec.com.cn/ (2026-10-24).
+# Unmodified installer mirrored in this fork; official source and hash in Release notes.
 # Extract only: the desktop installer starts host services and edits user profiles.
-RUN curl --noproxy '*' --fail --location --show-error --connect-timeout 30 --max-time 300 \
-      https://app.topsec.com.cn/linux/general/x86_64/deb/TopSAP-3.6.3.31.2.22375_amd64.deb \
+RUN curl --fail --location --show-error --connect-timeout 30 --max-time 300 \
+      https://github.com/Cheukfung/docker-topsap/releases/download/topsap-3.6.3.31.2.22375/TopSAP-3.6.3.31.2.22375_amd64.deb \
       --output /tmp/topsap.deb \
     && echo '06bb0b6a422782d859765ab2dc22757e280863f145f7a8867fb1391372095842  /tmp/topsap.deb' | sha256sum --check - \
     && dpkg-deb --extract /tmp/topsap.deb / \

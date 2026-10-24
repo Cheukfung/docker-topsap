@@ -8,6 +8,6 @@ docker run --rm --cap-add NET_ADMIN --device /dev/net/tun \
   -v "$PWD/tests:/tests:ro" topsap:test bash /tests/smoke.sh
 ```
 
-无需 Git LFS 或仓库内置的旧安装包。Dockerfile 从天融信官网固定 URL 下载并校验 SHA-256。
+无需 Git LFS 或仓库内置的旧安装包。Dockerfile 从本 fork 的 GitHub Release 下载未经修改的官方安装包，并校验 SHA-256；官方来源记录见 Release 说明。
 
 部署步骤与验证范围见 [usage.md](usage.md)。
