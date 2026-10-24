@@ -9,7 +9,7 @@
 - `TUN_MTU` 可配置，默认保持 1300；可设为 1200 对照排查长 HTTPS URL 超时。
 - CI 构建镜像并启动真实原生 SDK；VPN 登录与长 URL 访问需要你的环境验证。
 
-**部署说明：[doc/usage.md](doc/usage.md)** · [构建说明](doc/build.md) · [Compose 配置](compose.yaml)
+**部署说明：[doc/usage.md](doc/usage.md)** · [构建说明](doc/build.md) · [Compose 配置](docker-compose.yml)
 
 本项目使用天融信官方 Linux 安装包，客户端版权归天融信所有；本项目不是天融信官方项目。原项目的声明保留如下。
 

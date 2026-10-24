@@ -7,7 +7,7 @@
 ## Dokploy
 
 1. 新建 **Compose** 服务，选择 **Docker Compose** 类型。
-2. Git 来源选择 `Cheukfung/docker-topsap`，分支 `main`，Compose Path 填 `compose.yaml`。
+2. Git 来源选择 `Cheukfung/docker-topsap`，分支 `main`，Compose Path 填 `docker-compose.yml`。
 3. 在 Environment 填入以下配置，然后部署：
 
 ```dotenv
@@ -51,8 +51,8 @@ Dokploy 日志显示登录阶段和 SDK 错误码。需要排查原生启动错�
 ```bash
 cp .env.example .env
 # 编辑 .env
-docker compose -f compose.yaml up -d --build
-docker compose -f compose.yaml logs -f
+docker compose -f docker-compose.yml up -d --build
+docker compose -f docker-compose.yml logs -f
 ```
 
 构建会从本 fork 的 GitHub Release 下载未经修改的官方固定版本安装包并校验 SHA-256；下载失败或校验不符会直接停止。基础镜像为 Debian Bookworm。包通过 `dpkg-deb --extract` 解压，不执行会修改用户桌面、注册系统服务和启动 cron 的桌面安装脚本。

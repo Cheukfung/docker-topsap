@@ -24,7 +24,7 @@ jobs:
           SERVER_ADDRESS: vpn.example.com:443
           USER_NAME: test
           PASSWORD: test
-        run: docker compose -f compose.yaml config --quiet
+        run: docker compose -f docker-compose.yml config --quiet
       - name: Run actual native SDK
         run: |
           docker run --rm --cap-add NET_ADMIN --device /dev/net/tun \
