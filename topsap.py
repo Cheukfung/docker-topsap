@@ -59,11 +59,16 @@ def login():
     password = base64.b64encode(key.encrypt(os.environ["PASSWORD"].encode(), padding.PKCS1v15())).decode()
     proxy = {"type": "0", "addr": "", "port": "", "user": "", "pwd": "", "domain": ""}
     request({"method": "client_system_config", "addr": host})
-    auth = checked_request({
+    auth = request({
         "method": "get_auth_param", "serverAddr": host, "serverPort": port,
         "proxyType": "0", "proxyAddr": "", "proxyPort": "", "proxyUser": "",
         "proxyPwd": "", "proxyDomain": "", "user": user, "pwd": password, "_flag": 1,
     })
+    # get_auth_param reports err_code only on failure; unlike login_by_pwd,
+    # a successful auth-parameter object has no err_code (official UI contract).
+    if "err_code" in auth and int(auth["err_code"]) != 0:
+        raise RuntimeError(f"TopSAP get_auth_param failed: err_code={auth['err_code']}")
+    print("TopSAP gateway parameters received", flush=True)
     if auth.get("gid") == "on" or auth.get("login_check_verify") == "on":
         raise RuntimeError("Gateway requires a graphical verification code; this image supports password-only login")
     # These defaults match getAuthParamSuccess in the official sv_init.js.
