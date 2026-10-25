@@ -17,14 +17,14 @@ PASSWORD=你的密码
 TUN_MTU=1300
 PROXY_BIND_IP=192.168.0.233
 HTTP_PORT=1088
-SOCKS_PORT=1089
+SOCKS5_PORT=1089
 ```
 
 `SERVER_ADDRESS` 填 `主机名:端口` 或 `IP:端口`，不带 `https://` 和路径。账号密码不要提交到 Git。包含 `$`、`#` 等字符时，按 dotenv 格式用单引号包住整个值。
 
 宿主机必须有 `/dev/net/tun`。Compose 已声明 `NET_ADMIN` 和设备映射，无须 privileged。使用 Docker Compose 模式；Stack 模式不适用于这里的设备映射和源码构建。不要为 混合代理服务添加 HTTP 域名代理。
 
-代理按协议分端口绑定 NAS 的内网地址：HTTP 代理在 `192.168.0.233:1088`，SOCKS5 代理在 `192.168.0.233:1089`。`PROXY_BIND_IP` 可指定 NAS 的其他内网地址，`HTTP_PORT` / `SOCKS_PORT` 可分别修改端口。旧版 `SOCKS_BIND_IP` 和单端口混合模式不再使用。
+代理按协议分端口绑定 NAS 的内网地址：HTTP 代理在 `192.168.0.233:1088`，SOCKS5 代理在 `192.168.0.233:1089`。`PROXY_BIND_IP` 可指定 NAS 的其他内网地址，`HTTP_PORT` / `SOCKS5_PORT` 可分别修改端口。旧版 `SOCKS_BIND_IP`、`SOCKS_PORT` 和单端口混合模式不再使用。
 
 ```bash
 curl -v --noproxy '' --proxy socks5h://192.168.0.233:1089 \
