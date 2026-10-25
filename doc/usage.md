@@ -54,7 +54,7 @@ docker compose -f docker-compose.yml up -d --build
 docker compose -f docker-compose.yml logs -f
 ```
 
-构建会从本 fork 的 GitHub Release 下载未经修改的官方固定版本安装包并校验 SHA-256；下载失败或校验不符会直接停止。基础镜像为 Debian Bookworm。包通过 `dpkg-deb --extract` 解压，不执行会修改用户桌面、注册系统服务和启动 cron 的桌面安装脚本。
+构建通过 GitHub Release API 的固定资产 ID 下载本 fork 中未经修改的 TopSAP 官方安装包和 SagerNet 的 sing-box，并分别校验 SHA-256；避开 `github.com` 下载入口，下载失败或校验不符会直接停止。基础镜像为 Debian Bookworm。包通过 `dpkg-deb --extract` 解压，不执行会修改用户桌面、注册系统服务和启动 cron 的桌面安装脚本。
 
 ## 验证边界
 

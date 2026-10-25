@@ -18,7 +18,8 @@ RUN test "$TARGETARCH" = amd64 \
 # Unmodified installer mirrored in this fork; official source and hash in Release notes.
 # Extract only: the desktop installer starts host services and edits user profiles.
 RUN curl --fail --location --show-error --connect-timeout 30 --max-time 300 \
-      https://github.com/Cheukfung/docker-topsap/releases/download/topsap-3.6.3.31.2.22375/TopSAP-3.6.3.31.2.22375_amd64.deb \
+      --header 'Accept: application/octet-stream' \
+      https://api.github.com/repos/Cheukfung/docker-topsap/releases/assets/672483240 \
       --output /tmp/topsap.deb \
     && echo '06bb0b6a422782d859765ab2dc22757e280863f145f7a8867fb1391372095842  /tmp/topsap.deb' | sha256sum --check - \
     && dpkg-deb --extract /tmp/topsap.deb / \
@@ -29,7 +30,8 @@ RUN curl --fail --location --show-error --connect-timeout 30 --max-time 300 \
 
 # One proxy core handles HTTP and SOCKS5, with egress bound to the VPN interface.
 RUN curl --fail --location --show-error --connect-timeout 30 --max-time 300 \
-      https://github.com/SagerNet/sing-box/releases/download/v1.14.4/sing-box-1.14.4-linux-amd64.tar.gz \
+      --header 'Accept: application/octet-stream' \
+      https://api.github.com/repos/SagerNet/sing-box/releases/assets/669526810 \
       --output /tmp/sing-box.tar.gz \
     && echo '699a1b510aa4396b2176d32d1181920399ebf1e267835da6f3b598d0f7c24968  /tmp/sing-box.tar.gz' | sha256sum --check - \
     && tar -xzf /tmp/sing-box.tar.gz -C /tmp \
