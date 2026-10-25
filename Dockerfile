@@ -9,7 +9,7 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 \
 RUN test "$TARGETARCH" = amd64 \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
-       ca-certificates curl dante-server iproute2 iptables libstdc++6 libuuid1 \
+       ca-certificates curl iproute2 iptables libstdc++6 libuuid1 \
        net-tools procps python3 python3-cryptography python3-json5 sudo \
     && update-alternatives --set iptables /usr/sbin/iptables-legacy \
     && rm -rf /var/lib/apt/lists/*
@@ -27,17 +27,18 @@ RUN curl --fail --location --show-error --connect-timeout 30 --max-time 300 \
     && touch /opt/sslvpn/config/vpnclient-sysconfig /opt/sslvpn/config/resinfo-config \
              /opt/sslvpn/config/spa_dateconfig /opt/sslvpn/config/spaconfig /opt/sslvpn/config/.sysconfig
 
-# Fixed GOST release supplies the HTTP/SOCKS auto-detecting entry point.
+# One proxy core handles HTTP and SOCKS5, with egress bound to the VPN interface.
 RUN curl --fail --location --show-error --connect-timeout 30 --max-time 300 \
-      https://github.com/go-gost/gost/releases/download/v3.3.1/gost_3.3.1_linux_amd64.tar.gz \
-      --output /tmp/gost.tar.gz \
-    && echo 'e0e3a2c9116e2f025e962bba340749f80696bda318613d45e5ae96dd0bcae37c  /tmp/gost.tar.gz' | sha256sum --check - \
-    && tar -xzf /tmp/gost.tar.gz -C /usr/local/bin gost \
-    && rm /tmp/gost.tar.gz
+      https://github.com/SagerNet/sing-box/releases/download/v1.14.4/sing-box-1.14.4-linux-amd64.tar.gz \
+      --output /tmp/sing-box.tar.gz \
+    && echo '699a1b510aa4396b2176d32d1181920399ebf1e267835da6f3b598d0f7c24968  /tmp/sing-box.tar.gz' | sha256sum --check - \
+    && tar -xzf /tmp/sing-box.tar.gz -C /tmp \
+    && install -m 755 /tmp/sing-box-1.14.4-linux-amd64/sing-box /usr/local/bin/sing-box \
+    && rm -r /tmp/sing-box.tar.gz /tmp/sing-box-1.14.4-linux-amd64
 
 WORKDIR /home/work
 COPY start.sh topsap.py ./
-COPY danted.conf /etc/danted.conf
-RUN chmod 755 start.sh
-EXPOSE 1080
+COPY sing-box.json /etc/sing-box.json
+RUN chmod 755 start.sh && sing-box check -c /etc/sing-box.json
+EXPOSE 1080 1082
 CMD ["/home/work/start.sh"]

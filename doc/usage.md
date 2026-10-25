@@ -22,7 +22,7 @@ SOCKS5_PORT=1089
 
 `SERVER_ADDRESS` 填 `主机名:端口` 或 `IP:端口`，不带 `https://` 和路径。账号密码不要提交到 Git。包含 `$`、`#` 等字符时，按 dotenv 格式用单引号包住整个值。
 
-宿主机必须有 `/dev/net/tun`。Compose 已声明 `NET_ADMIN` 和设备映射，无须 privileged。使用 Docker Compose 模式；Stack 模式不适用于这里的设备映射和源码构建。不要为 混合代理服务添加 HTTP 域名代理。
+宿主机必须有 `/dev/net/tun`。Compose 已声明 `NET_ADMIN` 和设备映射，无须 privileged。使用 Docker Compose 模式；Stack 模式不适用于这里的设备映射和源码构建。不要为代理服务添加 HTTP 域名代理。
 
 代理按协议分端口绑定 NAS 的内网地址：HTTP 代理在 `192.168.0.233:1088`，SOCKS5 代理在 `192.168.0.233:1089`。`PROXY_BIND_IP` 可指定 NAS 的其他内网地址，`HTTP_PORT` / `SOCKS5_PORT` 可分别修改端口。旧版 `SOCKS_BIND_IP`、`SOCKS_PORT` 和单端口混合模式不再使用。
 
@@ -33,7 +33,9 @@ curl -v --noproxy '' --proxy http://192.168.0.233:1088 \
   --connect-timeout 10 --max-time 30 '完整HTTPS地址'
 ```
 
-HTTP 代理支持 HTTPS CONNECT。GOST 的 SOCKS5/HTTP 监听器各自独立，经本地 Dante 转发；Dante 的出口绑定 `tun0` 并放行 SOCKS5 UDP 中继。该代理没有认证，端口仅供可信网络访问。
+HTTP 和 SOCKS5 均由 sing-box 1.14.4 直接提供，已移除 GOST 和 Dante。HTTP 代理支持 HTTPS CONNECT；出口绑定 `tun0`，域名使用容器系统 DNS 解析。当前 Compose 只发布 TCP 端口，不提供外部 SOCKS5 UDP 中继。该代理没有认证，端口仅供可信网络访问。
+
+从旧版升级需重新构建并部署镜像，HTTP/SOCKS5 地址和端口保持不变。Shadowrocket 节点分别选择 HTTP（1088）或 SOCKS5（1089），无需认证或 TLS。
 
 ## 超长 URL 对照测试
 
@@ -56,7 +58,7 @@ docker compose -f docker-compose.yml logs -f
 
 ## 验证边界
 
-GitHub Actions 验证 amd64 镜像构建、Compose 配置、原生 SDK 的实际启动与本地接口响应、Dante 配置和 HTTP/SOCKS5 分端口转发，以及 Unix socket 半关闭和分段响应处理。CI 不持有你的 VPN 凭据，不验证登录、网关兼容性或长 URL 连通性；这些需在 Dokploy 部署后测试。
+GitHub Actions 验证 amd64 镜像构建、Compose 配置、原生 SDK 的实际启动与本地接口响应、sing-box 配置和 HTTP/SOCKS5 分端口的 HTTP、HTTPS 实际传输（含 IP、域名、16KB URL 和 64KB 以上响应），以及 Unix socket 半关闭和分段响应处理。CI 不持有你的 VPN 凭据，不验证登录、网关兼容性或长 URL 连通性；这些需在 Dokploy 部署后测试。
 
 安装包镜像：[fork Release](https://github.com/Cheukfung/docker-topsap/releases/tag/topsap-3.6.3.31.2.22375)。GitHub runner 无法连接官网下载站，构建统一使用此镜像，不自动切换下载来源。
 

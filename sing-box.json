@@ -1,0 +1,14 @@
+{
+  "log": {"level": "info"},
+  "dns": {
+    "servers": [{"type": "local", "tag": "system"}]
+  },
+  "inbounds": [
+    {"type": "socks", "tag": "socks-in", "listen": "0.0.0.0", "listen_port": 1080},
+    {"type": "http", "tag": "http-in", "listen": "0.0.0.0", "listen_port": 1082}
+  ],
+  "outbounds": [
+    {"type": "direct", "tag": "vpn", "bind_interface": "tun0", "domain_resolver": "system"}
+  ],
+  "route": {"final": "vpn"}
+}

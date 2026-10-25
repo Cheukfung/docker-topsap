@@ -39,11 +39,7 @@ done
 python3 /home/work/topsap.py
 ip link set dev tun0 mtu "$TUN_MTU"
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-danted -f /etc/danted.conf &
-pids+=("$!")
-gost -L socks5://:1080 -F socks5://127.0.0.1:1081 &
-pids+=("$!")
-gost -L http://:1082 -F socks5://127.0.0.1:1081 &
+sing-box run -c /etc/sing-box.json &
 pids+=("$!")
 echo "SOCKS5 proxy on container port 1080, HTTP proxy on 1082; tun0 MTU=$TUN_MTU"
 wait -n "${pids[@]}"
