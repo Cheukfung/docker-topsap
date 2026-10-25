@@ -34,8 +34,10 @@ fi
 sed 's/external: tun0/external: lo/' /etc/danted.conf > /tmp/danted-test.conf
 danted -f /tmp/danted-test.conf > /tmp/dante.log 2>&1 &
 dante_pid=$!
-gost -L auto://127.0.0.1:1080 -F socks5://127.0.0.1:1081 > /tmp/gost.log 2>&1 &
-gost_pid=$!
+gost -L socks5://127.0.0.1:1080 -F socks5://127.0.0.1:1081 > /tmp/gost-socks5.log 2>&1 &
+gost_socks5_pid=$!
+gost -L http://127.0.0.1:1082 -F socks5://127.0.0.1:1081 > /tmp/gost-http.log 2>&1 &
+gost_http_pid=$!
 python3 /tests/mixed_proxy.py
-kill "$gost_pid" "$dante_pid"
-echo 'Native SDK, JavaScript-object response parser, and HTTP/SOCKS5 mixed proxy tests passed'
+kill "$gost_socks5_pid" "$gost_http_pid" "$dante_pid"
+echo 'Native SDK, JavaScript-object response parser, and split SOCKS5/HTTP proxy tests passed'

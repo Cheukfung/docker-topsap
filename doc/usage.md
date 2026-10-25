@@ -16,23 +16,24 @@ USER_NAME=你的用户名
 PASSWORD=你的密码
 TUN_MTU=1300
 PROXY_BIND_IP=192.168.0.233
-SOCKS_PORT=1088
+HTTP_PORT=1088
+SOCKS_PORT=1089
 ```
 
 `SERVER_ADDRESS` 填 `主机名:端口` 或 `IP:端口`，不带 `https://` 和路径。账号密码不要提交到 Git。包含 `$`、`#` 等字符时，按 dotenv 格式用单引号包住整个值。
 
 宿主机必须有 `/dev/net/tun`。Compose 已声明 `NET_ADMIN` 和设备映射，无须 privileged。使用 Docker Compose 模式；Stack 模式不适用于这里的设备映射和源码构建。不要为 混合代理服务添加 HTTP 域名代理。
 
-默认 HTTP/SOCKS5 混合代理绑定 NAS 的内网地址 `192.168.0.233:1088`，局域网设备直接连接这个地址，两种协议共用一个端口，无须 SSH 隧道。`PROXY_BIND_IP` 可指定 NAS 的其他内网地址，`SOCKS_PORT` 可修改端口。旧的 `SOCKS_BIND_IP` 变量不再生效。
+代理按协议分端口绑定 NAS 的内网地址：HTTP 代理在 `192.168.0.233:1088`，SOCKS5 代理在 `192.168.0.233:1089`。`PROXY_BIND_IP` 可指定 NAS 的其他内网地址，`HTTP_PORT` / `SOCKS_PORT` 可分别修改端口。旧版 `SOCKS_BIND_IP` 和单端口混合模式不再使用。
 
 ```bash
-curl -v --noproxy '' --proxy socks5h://192.168.0.233:1088 \
+curl -v --noproxy '' --proxy socks5h://192.168.0.233:1089 \
   --connect-timeout 10 --max-time 30 '完整HTTPS地址'
 curl -v --noproxy '' --proxy http://192.168.0.233:1088 \
   --connect-timeout 10 --max-time 30 '完整HTTPS地址'
 ```
 
-HTTP 代理支持 HTTPS CONNECT。GOST 自动识别协议，经本地 Dante 转发；Dante 的出口绑定 `tun0`。该代理没有认证，端口仅供可信网络访问。
+HTTP 代理支持 HTTPS CONNECT。GOST 的 SOCKS5/HTTP 监听器各自独立，经本地 Dante 转发；Dante 的出口绑定 `tun0` 并放行 SOCKS5 UDP 中继。该代理没有认证，端口仅供可信网络访问。
 
 ## 超长 URL 对照测试
 
@@ -55,7 +56,7 @@ docker compose -f docker-compose.yml logs -f
 
 ## 验证边界
 
-GitHub Actions 验证 amd64 镜像构建、Compose 配置、原生 SDK 的实际启动与本地接口响应、Dante 配置和 HTTP/SOCKS5 同端口转发，以及 Unix socket 半关闭和分段响应处理。CI 不持有你的 VPN 凭据，不验证登录、网关兼容性或长 URL 连通性；这些需在 Dokploy 部署后测试。
+GitHub Actions 验证 amd64 镜像构建、Compose 配置、原生 SDK 的实际启动与本地接口响应、Dante 配置和 HTTP/SOCKS5 分端口转发，以及 Unix socket 半关闭和分段响应处理。CI 不持有你的 VPN 凭据，不验证登录、网关兼容性或长 URL 连通性；这些需在 Dokploy 部署后测试。
 
 安装包镜像：[fork Release](https://github.com/Cheukfung/docker-topsap/releases/tag/topsap-3.6.3.31.2.22375)。GitHub runner 无法连接官网下载站，构建统一使用此镜像，不自动切换下载来源。
 
